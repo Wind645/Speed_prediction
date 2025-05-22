@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 
-def load_csv_to_dataloader(csv_file, batch_size=32, shuffle=True, order=4, val_split=0.2):
+def load_csv_to_dataloader(csv_file, length, batch_size=32, shuffle=True, order=4, val_split=0.2):
     '''
     从csv文件加载数据，生成特征(v, v², v³, v⁴)，返回 DataLoader。
     '''
@@ -12,10 +12,12 @@ def load_csv_to_dataloader(csv_file, batch_size=32, shuffle=True, order=4, val_s
     # 检查数据完整性
     if df.isnull().any().any():
         raise ValueError("CSV contains missing values")
-    if not {'v0', 'v_final'}.issubset(df.columns):
-        raise ValueError("CSV must contain 'v0' and 'v_final' columns")
+    if not {'t0', 't_final'}.issubset(df.columns):
+        raise ValueError("CSV must contain 't0' and 't_final' columns")
     
     # 提取初始速度和终止速度
+    df['v0'] = df['t0'] / length
+    df['v_final'] = df['t_final'] / length
     v0 = df['v0'].values
     v_final = df['v_final'].values
     

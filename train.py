@@ -97,13 +97,14 @@ def main():
     parser.add_argument('--val_split', type=float, default=0.2, help='the ratio of validation set')
     parser.add_argument('--checkpoint_path', type=str, default='ckpt/best_model.pth', 
                         help='Path to checkpoint')
+    parser.add_argument('--length', type=float, default=1.0, help='Length of the object')
     args = parser.parse_args()
     
     # 设置设备
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # 加载数据
-    train_loader, val_loader = load_csv_to_dataloader(args.csv_file, args.batch_size, val_split = args.val_split)
+    train_loader, val_loader = load_csv_to_dataloader(args.csv_file, args.length, args.batch_size, val_split = args.val_split)
     
     # 初始化模型、损失函数和优化器
     model = Speed_Prediction(input_orders=4)  # 或者 Speed_Prediction_with_mass(input_orders=4)
