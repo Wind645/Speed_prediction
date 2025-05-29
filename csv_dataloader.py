@@ -16,8 +16,8 @@ def load_csv_to_dataloader(csv_file, length, batch_size=32, shuffle=True, order=
         raise ValueError("CSV must contain 't0' and 't_final' columns")
     
     # 提取初始速度和终止速度
-    df['v0'] = df['t0'] / length
-    df['v_final'] = df['t_final'] / length
+    df['v0'] = (length * 10) / df['t0']
+    df['v_final'] = (length * 10) / df['t_final'] 
     v0 = df['v0'].values
     v_final = df['v_final'].values
     
@@ -28,8 +28,12 @@ def load_csv_to_dataloader(csv_file, length, batch_size=32, shuffle=True, order=
     # 目标：终止速度
     targets = torch.tensor(v_final, dtype=torch.float32).reshape(-1, 1)
     
+    # 计算并保存标准化参数
+    feature_mean = features.mean(dim=0)
+    feature_std = features.std(dim=0) + 1e-8
+    
     # 标准化特征（可选，提高训练稳定性）
-    features = (features - features.mean(dim=0)) / (features.std(dim=0) + 1e-8)
+    features = (features - feature_mean) / feature_std
     
     # 划分训练集和验证集
     train_features, val_features, train_targets, val_targets = train_test_split(
@@ -44,4 +48,10 @@ def load_csv_to_dataloader(csv_file, length, batch_size=32, shuffle=True, order=
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle)
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     
-    return train_dataloader, val_dataloader
+    normalization_params = {
+        'mean': feature_mean,
+        'std': feature_std,
+        'order': order
+    }
+    
+    return train_dataloader, val_dataloader, normalization_params
